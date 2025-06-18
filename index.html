@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공감춘천 - 참여행정 플랫폼 데모</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 30%, #06b6d4 70%, #0891b2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .demo-container {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .demo-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6, #06b6d4, #0891b2);
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-top: 10px;
+        }
+        
+        .demo-title {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .demo-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .flow-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+            position: relative;
+            opacity: 0.3;
+            transition: all 0.5s ease;
+        }
+        
+        .flow-step.active {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        
+        .flow-step.completed {
+            opacity: 0.8;
+        }
+        
+        .flow-step::after {
+            content: '→';
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #cbd5e0;
+            font-weight: bold;
+        }
+        
+        .flow-step:last-child::after {
+            display: none;
+        }
+        
+        .flow-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .flow-step.active .flow-icon {
+            background: linear-gradient(45deg, #3b82f6, #06b6d4);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .flow-step.completed .flow-icon {
+            background: #10b981;
+            color: white;
+        }
+        
+        .flow-text {
+            font-size: 11px;
+            text-align: center;
+            font-weight: 600;
+            color: #64748b;
+        }
+        
+        .flow-step.active .flow-text {
+            color: #1e3a8a;
+        }
+        
+        .chat-interface {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 20px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .chat-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(45deg, #3b82f6, #06b6d4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .chat-info {
+            flex: 1;
+        }
+        
+        .chat-name {
+            font-weight: 700;
+            color: #1e3a8a;
+            font-size: 16px;
+        }
+        
+        .chat-status {
+            font-size: 12px;
+            color: #10b981;
+            margin-top: 2px;
+        }
+        
+        .messages-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        
+        .message {
+            animation: messageSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .bot-message {
+            background: white;
+            padding: 15px 18px;
+            border-radius: 18px 18px 18px 6px;
+            margin-right: 60px;
+            border-left: 4px solid #3b82f6;
+            font-size: 15px;
+            line-height: 1.5;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            color: #374151;
+        }
+        
+        .user-message {
+            background: linear-gradient(45deg, #3b82f6, #06b6d4);
+            color: white;
+            padding: 15px 18px;
+            border-radius: 18px 18px 6px 18px;
+            margin-left: 60px;
+            text-align: right;
+            font-size: 15px;
+            line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .ai-processing {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 20px;
+            border-radius: 18px 18px 18px 6px;
+            margin-right: 40px;
+            border-left: 4px solid #0ea5e9;
+            font-size: 14px;
+            color: #0c4a6e;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .processing-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .processing-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .processing-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            opacity: 0.4;
+            transition: all 0.5s ease;
+            border-left: 3px solid #cbd5e0;
+        }
+        
+        .processing-step.active {
+            opacity: 1;
+            border-left-color: #0ea5e9;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+            transform: translateX(5px);
+        }
+        
+        .processing-step.completed {
+            opacity: 0.9;
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+        }
+        
+        .step-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #cbd5e0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        
+        .processing-step.active .step-icon {
+            background: #0ea5e9;
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        
+        .processing-step.completed .step-icon {
+            background: #10b981;
+            color: white;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+        
+        .step-detail {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .processing-step.active .step-detail {
+            opacity: 1;
+            color: #0ea5e9;
+        }
+        
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+        
+        .input-section {
+            border-top: 2px solid #e2e8f0;
+            padding-top: 20px;
+        }
+        
+        .input-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .voice-button {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 18px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .voice-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .voice-button.recording {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            animation: recordingPulse 1s infinite;
+        }
+        
+        @keyframes recordingPulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+        
+        .text-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .text-input {
+            flex: 1;
+            padding: 15px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .text-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .send-button {
+            background: linear-gradient(45deg, #3b82f6, #06b6d4);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .quick-replies {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        
+        .quick-reply {
+            background: white;
+            color: #3b82f6;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-reply:hover {
+            border-color: #3b82f6;
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .demo-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .demo-button {
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+        }
+        
+        .policy-summary {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #10b981;
+            margin-top: 15px;
+        }
+        
+        .policy-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .policy-title {
+            font-weight: 700;
+            color: #166534;
+            font-size: 16px;
+        }
+        
+        .policy-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .policy-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #10b981;
+        }
+        
+        .policy-item-label {
+            font-size: 12px;
+            color: #059669;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .policy-item-value {
+            font-size: 14px;
+            color: #166534;
+            font-weight: 500;
+        }
+        
+        .delivery-status {
+            background: linear-gradient(45deg, #3b82f6, #06b6d4);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .delivery-animation {
+            animation: deliveryPulse 2s infinite;
+        }
+        
+        @keyframes deliveryPulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">공감춘천</h1>
+            <p class="demo-subtitle">AI 기반 시민참여 정책제안 플랫폼</p>
+
+            <div class="flow-indicator">
+                <div class="flow-step" data-step="1">
+                    <div class="flow-icon">👤</div>
+                    <div class="flow-text">시민<br>입력</div>
+                </div>
+                <div class="flow-step" data-step="2">
+                    <div class="flow-icon">🤖</div>
+                    <div class="flow-text">AI<br>분석</div>
+                </div>
+                <div class="flow-step" data-step="3">
+                    <div class="flow-icon">📋</div>
+                    <div class="flow-text">정책<br>제안서</div>
+                </div>
+                <div class="flow-step" data-step="4">
+                    <div class="flow-icon">🏛️</div>
+                    <div class="flow-text">자동<br>전달</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-interface">
+            <div class="chat-header">
+                <div class="avatar">🏛️</div>
+                <div class="chat-info">
+                    <div class="chat-name">공감춘천 AI 상담원</div>
+                    <div class="chat-status">● 온라인 (Multi-Agent AI 시스템)</div>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <div class="message">
+                    <div class="bot-message">
+                        안녕하세요! 공감춘천입니다. 😊<br> 춘천시에 제안하고 싶은 정책이 있으시면 편하게 말씀해주세요!<br>
+                        <strong>일상 언어로 말씀하시면 AI가 정책 제안서로 변환해드립니다.</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <div class="input-options">
+                    <button class="voice-button" id="voiceButton">
+                        🎤 터치해서 음성으로 말씀해주세요
+                    </button>
+
+                    <div class="text-input-container">
+                        <input type="text" class="text-input" id="textInput" placeholder="예: 킥보드가 인도를 막아서 불편해요" />
+                        <button class="send-button" id="sendButton">📤</button>
+                    </div>
+
+                    <div class="quick-replies">
+                        <button class="quick-reply" data-text="킥보드가 인도에 너무 많이 세워져 있어서 위험해요">🛴 킥보드 문제</button>
+                        <button class="quick-reply" data-text="가로등이 너무 어두워서 밤에 무서워요">💡 가로등 문제</button>
+                        <button class="quick-reply" data-text="버스가 너무 자주 안 와서 불편해요">🚌 버스 문제</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-controls">
+            <button class="demo-button" id="resetDemo">🔄 데모 초기화</button>
+            <button class="demo-button" id="autoDemo">🎬 자동 데모 실행</button>
+        </div>
+    </div>
+
+    <script>
+        class ChatDemo {
+            constructor() {
+                this.messagesContainer = document.getElementById('messagesContainer');
+                this.textInput = document.getElementById('textInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.voiceButton = document.getElementById('voiceButton');
+                this.resetButton = document.getElementById('resetDemo');
+                this.autoButton = document.getElementById('autoDemo');
+                this.flowSteps = document.querySelectorAll('.flow-step');
+
+                this.isProcessing = false;
+                this.isRecording = false;
+                this.currentStep = 0;
+
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.textInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                this.voiceButton.addEventListener('click', () => this.toggleVoiceRecording());
+                this.resetButton.addEventListener('click', () => this.resetDemo());
+                this.autoButton.addEventListener('click', () => this.runAutoDemo());
+
+                document.querySelectorAll('.quick-reply').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const text = button.getAttribute('data-text');
+                        this.textInput.value = text;
+                        this.sendMessage();
+                    });
+                });
+            }
+
+            updateFlowStep(step) {
+                this.flowSteps.forEach((flowStep, index) => {
+                    flowStep.classList.remove('active', 'completed');
+                    if (index < step - 1) {
+                        flowStep.classList.add('completed');
+                    } else if (index === step - 1) {
+                        flowStep.classList.add('active');
+                    }
+                });
+            }
+
+            async sendMessage() {
+                const message = this.textInput.value.trim();
+                if (!message || this.isProcessing) return;
+
+                // Step 1: 시민 입력
+                this.updateFlowStep(1);
+                this.addUserMessage(message);
+                this.textInput.value = '';
+                this.isProcessing = true;
+                this.sendButton.disabled = true;
+
+                await this.delay(800);
+
+                // Step 2: AI 분석
+                this.updateFlowStep(2);
+                await this.processUserMessage(message);
+
+                this.isProcessing = false;
+                this.sendButton.disabled = false;
+            }
+
+            addUserMessage(message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerHTML = `<div class="user-message">${message}</div>`;
+                this.messagesContainer.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            addBotMessage(message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerHTML = `<div class="bot-message">${message}</div>`;
+                this.messagesContainer.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            addProcessingIndicator() {
+                const processingDiv = document.createElement('div');
+                processingDiv.className = 'message processing';
+                processingDiv.innerHTML = `
+                    <div class="ai-processing">
+                        <div class="processing-header">
+                            <span>🤖</span>
+                            <span>Multi-Agent AI 시스템 처리 중...</span>
+                        </div>
+                        <div class="processing-steps">
+                            <div class="processing-step" data-step="1">
+                                <div class="step-icon">🎯</div>
+                                <div class="step-content">
+                                    <div class="step-title">음성/텍스트 분석</div>
+                                    <div class="step-detail">자연어 처리 및 의도 파악</div>
+                                </div>
+                            </div>
+                            <div class="processing-step" data-step="2">
+                                <div class="step-icon">🔍</div>
+                                <div class="step-content">
+                                    <div class="step-title">문제 분류 및 분석</div>
+                                    <div class="step-detail">도시 문제 유형 식별 및 우선순위 평가</div>
+                                </div>
+                            </div>
+                            <div class="processing-step" data-step="3">
+                                <div class="step-icon">📝</div>
+                                <div class="step-content">
+                                    <div class="step-title">정책 언어 변환</div>
+                                    <div class="step-detail">일상 언어를 행정 용어로 변환</div>
+                                </div>
+                            </div>
+                            <div class="processing-step" data-step="4">
+                                <div class="step-icon">🏢</div>
+                                <div class="step-content">
+                                    <div class="step-title">담당 부서 매칭</div>
+                                    <div class="step-detail">최적 담당 부서 및 관련 법규 확인</div>
+                                </div>
+                            </div>
+                            <div class="processing-step" data-step="5">
+                                <div class="step-icon">📋</div>
+                                <div class="step-content">
+                                    <div class="step-title">정책 제안서 생성</div>
+                                    <div class="step-detail">구체적 실행 방안 및 예산 계획 수립</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                this.messagesContainer.appendChild(processingDiv);
+                this.scrollToBottom();
+                return processingDiv;
+            }
+
+            async processUserMessage(message) {
+                const processingIndicator = this.addProcessingIndicator();
+                const steps = processingIndicator.querySelectorAll('.processing-step');
+
+                // Simulate AI processing steps
+                for (let i = 0; i < steps.length; i++) {
+                    steps[i].classList.add('active');
+                    await this.delay(1200);
+                    steps[i].classList.remove('active');
+                    steps[i].classList.add('completed');
+                }
+
+                await this.delay(500);
+                processingIndicator.remove();
+
+                // Step 3: 정책 제안서 생성
+                this.updateFlowStep(3);
+                const response = this.generateResponse(message);
+                this.addBotMessage(response.message);
+
+                if (response.summary) {
+                    await this.delay(1000);
+                    this.addPolicySummary(response.summary);
+
+                    await this.delay(1500);
+                    // Step 4: 자동 전달
+                    this.updateFlowStep(4);
+                    this.addDeliveryConfirmation();
+                }
+            }
+
+            generateResponse(message) {
+                const lowerMessage = message.toLowerCase();
+
+                if (lowerMessage.includes('킥보드') || lowerMessage.includes('스쿠터')) {
+                    return {
+                        message: `전동킥보드 관련 제안을 분석했습니다! 🛴<br>
+                                 <strong>보행자 안전을 위한 중요한 문제로 식별되었습니다.</strong><br>
+                                 구체적인 정책 제안서를 생성하겠습니다.`,
+                        summary: {
+                            title: "전동킥보드 주차 질서 확립 및 보행 안전 개선 방안",
+                            category: "교통/안전",
+                            content: "보행로 내 전동킥보드 무분별한 주차로 인한 보행 장애 및 안전사고 위험성 해결을 위한 종합적 개선 방안",
+                            solution: "전용 주차구역 설치, 앱 연동 주차 관리 시스템 도입, 위반 업체 제재 강화",
+                            department: "교통정책과",
+                            relatedDept: "도시안전과, 보건복지과",
+                            priority: "긴급",
+                            budget: "1억 2천만원",
+                            timeline: "3개월"
+                        }
+                    };
+                } else if (lowerMessage.includes('가로등') || lowerMessage.includes('어두')) {
+                    return {
+                        message: `가로등 조도 개선 요청을 분석했습니다! 💡<br>
+                                 <strong>시민 안전을 위한 필수 인프라 개선 사항으로 분류되었습니다.</strong>`,
+                        summary: {
+                            title: "가로등 조도 개선 및 스마트 조명 시스템 구축",
+                            category: "도시인프라",
+                            content: "야간 보행 안전 확보를 위한 가로등 조도 부족 지역 개선 및 에너지 효율적 스마트 조명 시스템 도입",
+                            solution: "LED 가로등 교체, 조도 센서 설치, 스마트 조명 제어 시스템 구축",
+                            department: "도시건설과",
+                            relatedDept: "시설관리공단",
+                            priority: "높음",
+                            budget: "8천만원",
+                            timeline: "2개월"
+                        }
+                    };
+                } else if (lowerMessage.includes('버스') || lowerMessage.includes('교통')) {
+                    return {
+                        message: `대중교통 개선 요청을 분석했습니다! 🚌<br>
+                                 <strong>시민 이동권 보장을 위한 중요한 정책 과제로 식별되었습니다.</strong>`,
+                        summary: {
+                            title: "버스 노선 및 배차간격 최적화 방안",
+                            category: "대중교통",
+                            content: "시민 대중교통 이용 편의성 향상을 위한 버스 노선 재편 및 실시간 배차 관리 시스템 개선",
+                            solution: "노선별 수요 분석, 배차간격 조정, 실시간 정보 제공 시스템 구축",
+                            department: "교통정책과",
+                            relatedDept: "춘천시 버스운송사업조합",
+                            priority: "보통",
+                            budget: "5천만원",
+                            timeline: "4개월"
+                        }
+                    };
+                } else {
+                    return {
+                        message: `소중한 의견을 분석했습니다! 😊<br>
+                                 <strong>시민 생활 개선을 위한 정책 과제로 분류되었습니다.</strong>`,
+                        summary: {
+                            title: "시민 생활 편의 개선 종합 방안",
+                            category: "생활복지",
+                            content: "시민이 제기한 생활 불편 사항에 대한 종합적 개선 방안 수립",
+                            solution: "현장 조사 실시, 관련 부서 협의, 단계적 개선 계획 수립",
+                            department: "시민소통과",
+                            relatedDept: "해당 업무 담당 부서",
+                            priority: "보통",
+                            budget: "별도 책정",
+                            timeline: "1개월"
+                        }
+                    };
+                }
+            }
+
+            addPolicySummary(summary) {
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = 'message';
+                summaryDiv.innerHTML = `
+                    <div class="bot-message">
+                        <div class="policy-summary">
+                            <div class="policy-header">
+                                <span>📋</span>
+                                <div class="policy-title">생성된 정책 제안서</div>
+                            </div>
+                            
+                            <div class="policy-content">
+                                <div class="policy-item">
+                                    <div class="policy-item-label">제안 제목</div>
+                                    <div class="policy-item-value">${summary.title}</div>
+                                </div>
+                                <div class="policy-item">
+                                    <div class="policy-item-label">정책 분야</div>
+                                    <div class="policy-item-value">${summary.category}</div>
+                                </div>
+                                <div class="policy-item">
+                                    <div class="policy-item-label">주관 부서</div>
+                                    <div class="policy-item-value">${summary.department}</div>
+                                </div>
+                                <div class="policy-item">
+                                    <div class="policy-item-label">우선순위</div>
+                                    <div class="policy-item-value">${summary.priority}</div>
+                                </div>
+                                <div class="policy-item">
+                                    <div class="policy-item-label">예상 예산</div>
+                                    <div class="policy-item-value">${summary.budget}</div>
+                                </div>
+                                <div class="policy-item">
+                                    <div class="policy-item-label">추진 기간</div>
+                                    <div class="policy-item-value">${summary.timeline}</div>
+                                </div>
+                            </div>
+
+                            <div class="policy-item" style="grid-column: 1 / -1; margin-top: 10px;">
+                                <div class="policy-item-label">문제 현황</div>
+                                <div class="policy-item-value">${summary.content}</div>
+                            </div>
+
+                            <div class="policy-item" style="grid-column: 1 / -1;">
+                                <div class="policy-item-label">해결 방안</div>
+                                <div class="policy-item-value">${summary.solution}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                this.messagesContainer.appendChild(summaryDiv);
+                this.scrollToBottom();
+            }
+
+            addDeliveryConfirmation() {
+                const deliveryDiv = document.createElement('div');
+                deliveryDiv.className = 'message';
+                deliveryDiv.innerHTML = `
+                    <div class="bot-message">
+                        <div class="delivery-status delivery-animation">
+                            <span>🚀</span>
+                            <span>정책 제안서가 담당 부서에 자동 전달되었습니다!</span>
+                        </div>
+                        <br>
+                        <strong>📬 처리 과정</strong><br>
+                        ✅ 담당 부서: 자동 배정 완료<br>
+                        ✅ 검토 요청: 업무 시스템 등록<br>
+                        ✅ 알림 발송: 카카오톡으로 진행상황 알림<br><br>
+                        <em style="color: #059669;">
+                        💡 평균 검토 기간: 5-7일<br>
+                        📱 결과는 카카오톡으로 알려드려요!
+                        </em>
+                    </div>
+                `;
+                this.messagesContainer.appendChild(deliveryDiv);
+                this.scrollToBottom();
+            }
+
+            toggleVoiceRecording() {
+                if (this.isRecording) {
+                    this.stopVoiceRecording();
+                } else {
+                    this.startVoiceRecording();
+                }
+            }
+
+            startVoiceRecording() {
+                this.isRecording = true;
+                this.voiceButton.classList.add('recording');
+                this.voiceButton.innerHTML = '⏹️ 녹음 중... (터치하면 종료)';
+
+                // Simulate voice recording
+                setTimeout(() => {
+                    this.stopVoiceRecording();
+                    this.textInput.value = '킥보드가 인도에 너무 많이 세워져 있어서 위험해요';
+                    this.sendMessage();
+                }, 3000);
+            }
+
+            stopVoiceRecording() {
+                this.isRecording = false;
+                this.voiceButton.classList.remove('recording');
+                this.voiceButton.innerHTML = '🎤 터치해서 음성으로 말씀해주세요';
+            }
+
+            async runAutoDemo() {
+                this.resetDemo();
+                await this.delay(1500);
+
+                // 자동 데모 시퀀스
+                this.addBotMessage(`
+                    <strong>🎬 자동 데모를 시작합니다!</strong><br>
+                    4단계 플로우를 모두 체험해보세요.
+                `);
+
+                await this.delay(2000);
+
+                // 시민 입력 시뮬레이션
+                this.textInput.value = '킥보드가 인도에 너무 많이 세워져 있어서 위험해요';
+                await this.delay(1000);
+                this.sendMessage();
+
+                // 데모 완료 후 추가 안내
+                setTimeout(() => {
+                    this.addBotMessage(`
+                        <strong>🎉 자동 데모가 완료되었습니다!</strong><br><br>
+                        <strong>체험한 4단계 플로우:</strong><br>
+                        ✅ 1단계: 시민의 일상 언어 입력<br>
+                        ✅ 2단계: Multi-Agent AI 분석<br>
+                        ✅ 3단계: 정책 제안서 자동 생성<br>
+                        ✅ 4단계: 담당 부서 자동 전달<br><br>
+                        <em>이제 직접 다른 문제를 입력해보세요! 🚀</em>
+                    `);
+                }, 12000);
+            }
+
+            resetDemo() {
+                // 첫 번째 봇 메시지만 유지
+                const messages = this.messagesContainer.children;
+                while (messages.length > 1) {
+                    messages[messages.length - 1].remove();
+                }
+                this.textInput.value = '';
+                this.isProcessing = false;
+                this.sendButton.disabled = false;
+
+                // 플로우 인디케이터 초기화
+                this.flowSteps.forEach(step => {
+                    step.classList.remove('active', 'completed');
+                });
+            }
+
+            scrollToBottom() {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize demo when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ChatDemo();
+        });
+    </script>
+</body>
+
+</html>
