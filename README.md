@@ -31,12 +31,12 @@ Duplicate or similar proposals are clustered and compiled into automated reports
 
 ```mermaid
 flowchart TD
-    A[Citizen Input (Web/KakaoTalk)] --> B[LLM Summarizer]
-    B --> C[Policy Language Converter (Prompt-Orchestration)]
-    C --> D[Department Classifier (KoBERT/FastText)]
-    D --> E[Proposal Clustering (S-BERT+FAISS)]
-    E --> F[Policy Report Generator (LangChain+GPT)]
-    F --> G[Delivery to Gov Intranet / Email]
+    A[Citizen Input - Web or KakaoTalk] --> B[LLM Summarizer]
+    B --> C[Policy Language Converter - Prompt Orchestration]
+    C --> D[Department Classifier - KoBERT FastText]
+    D --> E[Proposal Clustering - S-BERT FAISS]
+    E --> F[Policy Report Generator - LangChain GPT]
+    F --> G[Delivery - Gov Intranet Email]
 ```
 
 ---
